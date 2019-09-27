@@ -115,11 +115,71 @@ function humescores_widgets_init() {
 	) );
 }
 add_action( 'widgets_init', 'humescores_widgets_init' );
+/**
+ * Register custom fonts.
+ */
+function humescores_fonts_url() {
+    $fonts_url = '';
+    $font_families = array();
 
+    /*
+     * Translators: If there are characters in your language that are not
+     * supported by Libre Franklin, translate this to 'off'. Do not translate
+     * into your own language.
+     */
+    $PT_sans = _x( 'on', 'PT Sans font: on or off', 'humescores' );
+    $Vietnam = _x('on', 'Be Vietnam font: on or off','humescores');
+     if('off' !== $PT_sans){
+         $font_families[] = 'PT Sans:400,400i,700,700i';
+     }
+
+     if('off' !== $Vietnam){
+         $font_families[] = 'Be Vietnam:400,400i,500,600i,700i,800,800i';
+     }
+
+
+
+    if ( in_array('on', array($Vietnam,$PT_sans)) ) {
+        $query_args = array(
+            'family' => urlencode( implode( '|', $font_families ) ),
+            'subset' => urlencode( 'latin,latin-ext' ),
+        );
+
+        $fonts_url = add_query_arg( $query_args, 'https://fonts.googleapis.com/css' );
+    }
+
+    return esc_url_raw( $fonts_url );
+}
+
+/**
+ * Add preconnect for Google Fonts.
+ *
+ * @since Twenty Seventeen 1.0
+ *
+ * @param array  $urls           URLs to print for resource hints.
+ * @param string $relation_type  The relation type the URLs are printed.
+ * @return array $urls           URLs to print for resource hints.
+ */
+function humescores_resource_hints( $urls, $relation_type ) {
+    if ( wp_style_is( 'humescores-fonts', 'queue' ) && 'preconnect' === $relation_type ) {
+        $urls[] = array(
+            'href' => 'https://fonts.gstatic.com',
+            'crossorigin',
+        );
+    }
+
+    return $urls;
+}
+add_filter( 'wp_resource_hints', 'humescores_resource_hints', 10, 2 );
 /**
  * Enqueue scripts and styles.
  */
 function humescores_scripts() {
+    /**
+     * font-style from google fonts
+    */
+    wp_enqueue_style('humescores_fonts',humescores_fonts_url());
+
 	wp_enqueue_style( 'humescores-style', get_stylesheet_uri() );
 
 	wp_enqueue_script( 'humescores-navigation', get_template_directory_uri() . '/js/navigation.js', array(), '20151215', true );
